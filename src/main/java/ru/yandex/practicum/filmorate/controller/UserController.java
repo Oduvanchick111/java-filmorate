@@ -1,6 +1,8 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exceptions.ValidateException;
 import ru.yandex.practicum.filmorate.model.User;
@@ -13,6 +15,7 @@ import java.util.Map;
 @RequestMapping("/users")
 public class UserController {
 
+    private static final Logger log = LoggerFactory.getLogger(UserController.class);
     private final Map<Long, User> users = new HashMap<>();
 
     @GetMapping
@@ -21,8 +24,9 @@ public class UserController {
     }
 
     @PostMapping
-    public User addUser(@Valid @RequestBody User user){
+    public User addUser(@Valid @RequestBody User user) {
         if (user.getLogin().contains(" ")) {
+            log.error("Ошибка валидации: Логин '{}' содержит пробелы", user.getLogin());
             throw new ValidateException("Логин не может содержать пробелы");
         }
         if (user.getName().isBlank()) {
@@ -30,11 +34,28 @@ public class UserController {
         }
         user.setId(getNextId());
         users.put(user.getId(), user);
+        log.info("Пользователь создан: '{}'", user);
         return user;
     }
 
     @PutMapping
     public User updateUser(@Valid @RequestBody User user) {
+        if (user.getId() == null) {
+            log.error("Ошибка валидации: id не может быть null");
+            throw new ValidateException("Id должен быть указан");
+        }
+        if (!users.containsKey(user.getId())) {
+            log.error("Ошибка валидации: такого id '{}' не существует", user.getId());
+            throw new ValidateException("Пользователь с таким id не найден");
+        }
+        if (user.getLogin().contains(" ")) {
+            log.error("Ошибка валидации: Логин '{}' содержит пробелы", user.getLogin());
+            throw new ValidateException("Логин не может содержать пробелы");
+        }
+        if (user.getName().isBlank()) {
+            user.setName(user.getLogin());
+        }
+        users.put(user.getId(), user);
         return user;
     }
 

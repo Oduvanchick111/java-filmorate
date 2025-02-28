@@ -15,7 +15,8 @@ import java.util.Objects;
 @Setter
 @ToString
 public class Film {
-    private long id;
+    private Long id;
+    @NotNull (message = "Имя не может быть пустым")
     @NotBlank (message = "Имя не может быть пустым")
     private String name;
     @Size(max = 200, message = "Максимальная длина описания — 200 символов")
@@ -31,7 +32,7 @@ public class Film {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Film film = (Film) o;
-        return id == film.id;
+        return Objects.equals(id, film.id);
     }
 
     @Override
