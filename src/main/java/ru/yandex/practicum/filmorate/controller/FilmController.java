@@ -13,7 +13,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-
 @RestController
 @RequestMapping("/films")
 public class FilmController {
@@ -29,10 +28,12 @@ public class FilmController {
     @PostMapping
     public Film addFilm(@Valid @RequestBody Film film) {
         if (film.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))) {
+            log.error("Дата релиза — не раньше 28 декабря 1895 года");
             throw new ValidateException("Дата релиза — не раньше 28 декабря 1895 года");
         }
         film.setId(getNextId());
         films.put(film.getId(), film);
+        log.info("Добавлен фильм {}", film);
         return film;
     }
 
@@ -41,10 +42,12 @@ public class FilmController {
         if (film.getId() == null) {
             throw new ValidateException("Id должен быть указан");
         }
-        if (films.containsKey(film.getId())) {
+        if (!films.containsKey(film.getId())) {
+            log.error("Фильм с id {} не найден", film.getId());
             throw new ValidateException("Такой фильм не найден");
         }
         films.put(film.getId(), film);
+        log.info("был обновлен фильм {}", film);
         return film;
     }
 

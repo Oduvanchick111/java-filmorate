@@ -3,7 +3,6 @@ package ru.yandex.practicum.filmorate.model;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
-import java.time.Duration;
 import java.time.LocalDate;
 import java.util.Objects;
 
@@ -25,7 +24,7 @@ public class Film {
     @Past(message = "Дата релиза должна быть до сегодняшнего дня")
     private LocalDate releaseDate;
     @Positive(message = "Продолжительность не может быть отрицательной либо 0")
-    private Duration duration;
+    private int duration;
 
     @Override
     public boolean equals(Object o) {
@@ -39,5 +38,7 @@ public class Film {
     public int hashCode() {
         return Objects.hash(id);
     }
+
+
 
 }

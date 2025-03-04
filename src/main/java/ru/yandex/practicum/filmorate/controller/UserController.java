@@ -23,15 +23,16 @@ public class UserController {
         return users.values();
     }
 
+    private String checkName(String name, String login) {
+        if (name == null || name.isBlank()) {
+            name = login;
+        }
+        return name;
+    }
+
     @PostMapping
     public User addUser(@Valid @RequestBody User user) {
-        if (user.getLogin().contains(" ")) {
-            log.error("Ошибка валидации: Логин '{}' содержит пробелы", user.getLogin());
-            throw new ValidateException("Логин не может содержать пробелы");
-        }
-        if (user.getName().isBlank()) {
-            user.setName(user.getLogin());
-        }
+        user.setName(checkName(user.getName(), user.getLogin()));
         user.setId(getNextId());
         users.put(user.getId(), user);
         log.info("Пользователь создан: '{}'", user);
@@ -48,14 +49,9 @@ public class UserController {
             log.error("Ошибка валидации: такого id '{}' не существует", user.getId());
             throw new ValidateException("Пользователь с таким id не найден");
         }
-        if (user.getLogin().contains(" ")) {
-            log.error("Ошибка валидации: Логин '{}' содержит пробелы", user.getLogin());
-            throw new ValidateException("Логин не может содержать пробелы");
-        }
-        if (user.getName().isBlank()) {
-            user.setName(user.getLogin());
-        }
+        user.setName(checkName(user.getName(), user.getLogin()));
         users.put(user.getId(), user);
+        log.info("Пользователь {} обновлен", user);
         return user;
     }
 
