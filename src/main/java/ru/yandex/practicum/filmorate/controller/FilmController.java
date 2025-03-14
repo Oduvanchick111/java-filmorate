@@ -17,6 +17,7 @@ import java.util.Map;
 @RequestMapping("/films")
 public class FilmController {
 
+    private static final LocalDate MIN_RELEASE_DATE = LocalDate.of(1895, 12, 28);
     private static final Logger log = LoggerFactory.getLogger(FilmController.class);
     private final Map<Long, Film> films = new HashMap<>();
 
@@ -27,7 +28,7 @@ public class FilmController {
 
     @PostMapping
     public Film addFilm(@Valid @RequestBody Film film) {
-        if (film.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))) {
+        if (film.getReleaseDate().isBefore(MIN_RELEASE_DATE)) {
             log.error("Дата релиза — не раньше 28 декабря 1895 года");
             throw new ValidateException("Дата релиза — не раньше 28 декабря 1895 года");
         }
@@ -45,6 +46,10 @@ public class FilmController {
         if (!films.containsKey(film.getId())) {
             log.error("Фильм с id {} не найден", film.getId());
             throw new ValidateException("Такой фильм не найден");
+        }
+        if (film.getReleaseDate().isBefore(MIN_RELEASE_DATE)) {
+            log.error("Дата релиза — не раньше 28 декабря 1895 года");
+            throw new ValidateException("Дата релиза — не раньше 28 декабря 1895 года");
         }
         films.put(film.getId(), film);
         log.info("был обновлен фильм {}", film);

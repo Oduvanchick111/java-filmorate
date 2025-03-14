@@ -20,7 +20,7 @@ public class User {
     @Pattern(regexp = "^$|^\\S+$", message = "Логин не должен содержать пробелы")
     private String login;
     private String name;
-    @Past(message = "Дата рождения не может быть в будущем.")
+    @PastOrPresent(message = "Дата рождения не может быть в будущем.")
     private LocalDate birthday;
 
     @Override

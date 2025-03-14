@@ -23,13 +23,6 @@ public class UserController {
         return users.values();
     }
 
-    private String checkName(String name, String login) {
-        if (name == null || name.isBlank()) {
-            name = login;
-        }
-        return name;
-    }
-
     @PostMapping
     public User addUser(@Valid @RequestBody User user) {
         user.setName(checkName(user.getName(), user.getLogin()));
@@ -62,6 +55,13 @@ public class UserController {
                 .max()
                 .orElse(0);
         return ++currentMaxId;
+    }
+
+    private String checkName(String name, String login) {
+        if (name == null || name.isBlank()) {
+            name = login;
+        }
+        return name;
     }
 
 }
