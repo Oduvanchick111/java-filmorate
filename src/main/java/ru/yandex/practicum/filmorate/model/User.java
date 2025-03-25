@@ -5,6 +5,7 @@ import lombok.*;
 
 import java.time.LocalDate;
 import java.util.Objects;
+import java.util.Set;
 
 @AllArgsConstructor
 @Getter
@@ -22,6 +23,7 @@ public class User {
     private String name;
     @PastOrPresent(message = "Дата рождения не может быть в будущем.")
     private LocalDate birthday;
+    private final Set<Long> friends;
 
     @Override
     public boolean equals(Object o) {

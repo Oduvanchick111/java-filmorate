@@ -5,6 +5,7 @@ import lombok.*;
 
 import java.time.LocalDate;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * Film.
@@ -25,6 +26,7 @@ public class Film {
     private LocalDate releaseDate;
     @Positive(message = "Продолжительность не может быть отрицательной либо 0")
     private int duration;
+    private  final Set<Long> idOfUsersWhoLiked;
 
     @Override
     public boolean equals(Object o) {
