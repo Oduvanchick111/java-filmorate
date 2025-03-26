@@ -4,13 +4,13 @@ import jakarta.validation.constraints.*;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
 /**
  * Film.
  */
-@AllArgsConstructor
 @Getter
 @Setter
 @ToString
@@ -26,7 +26,16 @@ public class Film {
     private LocalDate releaseDate;
     @Positive(message = "Продолжительность не может быть отрицательной либо 0")
     private int duration;
-    private  final Set<Long> idOfUsersWhoLiked;
+
+    private final Set<Long> idOfUsersWhoLiked = new HashSet<>();
+
+    public Film(Long id, String name, String description, LocalDate releaseDate, int duration) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.releaseDate = releaseDate;
+        this.duration = duration;
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -40,7 +49,4 @@ public class Film {
     public int hashCode() {
         return Objects.hash(id);
     }
-
-
-
 }

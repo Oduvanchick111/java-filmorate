@@ -3,16 +3,15 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.ValidateException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
-import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.Set;
 
 @Slf4j
 @Service
@@ -39,13 +38,13 @@ public class FilmService {
         return film;
     }
 
-    public Film updateFilm (Film film) {
+    public Film updateFilm(Film film) {
         if (film.getId() == null) {
             throw new ValidateException("Id должен быть указан");
         }
         if (filmStorage.getAllFilms().stream().mapToLong(Film::getId).noneMatch(id -> id == film.getId())) {
             log.error("Фильм с id {} не найден", film.getId());
-            throw new ValidateException("Такой фильм не найден");
+            throw new NotFoundException("Такой фильм не найден");
         }
         if (film.getReleaseDate().isBefore(MIN_RELEASE_DATE)) {
             log.error("Дата релиза — не раньше 28 декабря 1895 года");
@@ -64,7 +63,7 @@ public class FilmService {
         if (filmStorage.findFilmById(id).isPresent()) {
             return filmStorage.findFilmById(id).get();
         } else {
-            throw new ValidateException("Пользователя с таким id не существует");
+            throw new NotFoundException("Пользователя с таким id не существует");
         }
     }
 

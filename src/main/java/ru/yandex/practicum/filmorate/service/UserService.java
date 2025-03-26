@@ -3,13 +3,13 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.ValidateException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
 
 @Slf4j
@@ -37,7 +37,7 @@ public class UserService {
         }
         if (userStorage.getAllUsers().stream().mapToLong(User::getId).noneMatch(id -> id == user.getId())) {
             log.error("Ошибка валидации: такого id '{}' не существует", user.getId());
-            throw new ValidateException("Пользователь с таким id не найден");
+            throw new NotFoundException("Пользователь с таким id не найден");
         }
         user.setName(checkName(user.getName(), user.getLogin()));
         userStorage.updateUser(user);
@@ -45,7 +45,7 @@ public class UserService {
         return user;
     }
 
-    public Collection<User> getAllUsers(){
+    public Collection<User> getAllUsers() {
         return userStorage.getAllUsers();
     }
 
@@ -53,7 +53,7 @@ public class UserService {
         if (userStorage.findUserById(id).isPresent()) {
             return userStorage.findUserById(id).get();
         } else {
-            throw new ValidateException("Пользователя с таким id не существует");
+            throw new NotFoundException("Пользователя с таким id не существует");
         }
     }
 
@@ -63,6 +63,9 @@ public class UserService {
         }
         User user = findUserById(userId);
         User friend = findUserById(friendId);
+        if (user.getFriends().contains(friendId)) {
+            throw new ValidateException("Пользователи уже друзья");
+        }
         user.getFriends().add(friendId);
         friend.getFriends().add(userId);
         log.info("Пользователи {} и {} теперь друзья", user.getName(), friend.getName());
@@ -82,7 +85,7 @@ public class UserService {
     public Collection<User> showFriends(Long userId) {
         User user = findUserById(userId);
         Set<User> friends = new HashSet<>();
-        for (Long friendId: user.getFriends()) {
+        for (Long friendId : user.getFriends()) {
             User friend = findUserById(friendId);
             friends.add(friend);
         }
@@ -93,7 +96,7 @@ public class UserService {
         User user = findUserById(userId);
         User friend = findUserById(friendId);
         Set<User> commonFriends = new HashSet<>();
-        for (Long usersId: user.getFriends()) {
+        for (Long usersId : user.getFriends()) {
             if (friend.getFriends().contains(usersId)) {
                 commonFriends.add(findUserById(usersId));
             }
