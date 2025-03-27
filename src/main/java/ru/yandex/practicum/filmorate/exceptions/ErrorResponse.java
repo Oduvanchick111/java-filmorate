@@ -8,11 +8,9 @@ import java.util.Map;
 public class ErrorResponse {
     private final String error;
     private final String description;
-    private final Map<String, String> fields;
 
     public ErrorResponse(String error, String description) {
         this.error = error;
         this.description = description;
-        this.fields = null;
     }
 }
