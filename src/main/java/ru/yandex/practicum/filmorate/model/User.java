@@ -14,7 +14,7 @@ import java.util.Set;
 public class User {
 
     private Long id;
-    @Email (message = "Введен не верный адрес электронной почты")
+    @Email(message = "Введен не верный адрес электронной почты")
     private String email;
     @NotNull
     @NotBlank(message = "Логин не должен быть пустым")
