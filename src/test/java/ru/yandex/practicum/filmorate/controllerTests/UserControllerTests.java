@@ -9,6 +9,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import ru.yandex.practicum.filmorate.controller.UserController;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
+import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.time.LocalDate;
 
@@ -20,11 +23,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class UserControllerTests {
     private MockMvc mockMvc;
     private UserController userController;
+    private UserStorage userStorage;
+    private UserService userService;
     private final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
 
     @BeforeEach
     void setUp() {
-        userController = new UserController();
+        userStorage = new InMemoryUserStorage();
+        userService = new UserService(userStorage);
+        userController = new UserController(userService);
         mockMvc = MockMvcBuilders.standaloneSetup(userController).build();
     }
 
@@ -32,8 +39,8 @@ public class UserControllerTests {
     void addUser() throws Exception {
         User user = new User(1L, "pavelboltinskiy@gmail.com", "Oduvanchick", "Pavel", LocalDate.of(1998, 9, 16));
         mockMvc.perform(post("/users")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(user)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(user)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").exists());
     }
@@ -41,7 +48,7 @@ public class UserControllerTests {
     @Test
     void updateUserTest() throws Exception {
         User user = new User(1L, "pavelboltinskiy@gmail.com", "Oduvanchick", "Pavel", LocalDate.of(1998, 9, 16));
-        userController.addUser(user);
+        userController.createUser(user);
 
         User updatedUser = new User(1L, "pboltinskiy@yandex.ru", "Oduvanchick", "Павел", LocalDate.of(1998, 9, 16));
 
@@ -56,8 +63,8 @@ public class UserControllerTests {
     void getUsersTest() throws Exception {
         User user1 = new User(1L, "pavelboltinskiy@gmail.com", "Oduvanchick", "Pavel", LocalDate.of(1998, 9, 16));
         User user2 = new User(2L, "ktoeto@gmail.com", "neOduvanchick", "nePavel", LocalDate.of(1993, 9, 16));
-        userController.addUser(user1);
-        userController.addUser(user2);
+        userController.createUser(user1);
+        userController.createUser(user2);
 
         mockMvc.perform(get("/users"))
                 .andExpect(status().isOk())

@@ -18,7 +18,14 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
+import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.storage.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.InMemoryFilmStorage;
+import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
+import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 
 class FilmControllerTests {
@@ -29,7 +36,11 @@ class FilmControllerTests {
 
     @BeforeEach
     void setUp() {
-        filmController = new FilmController();
+        FilmStorage filmStorage = new InMemoryFilmStorage();
+        UserStorage userStorage = new InMemoryUserStorage();
+        UserService userService = new UserService(userStorage);
+        FilmService filmService = new FilmService(filmStorage, userService);
+        filmController = new FilmController(filmService);
         mockMvc = MockMvcBuilders.standaloneSetup(filmController).build();
     }
 
@@ -46,11 +57,10 @@ class FilmControllerTests {
 
     @Test
     void shouldFailWhenReleaseDateBefore1895() {
-        FilmController filmController = new FilmController();
         Film film = new Film(1L, "Old Film", "Description", LocalDate.of(1800, 1, 1), 120);
 
         ValidateException exception = assertThrows(ValidateException.class, () -> {
-            filmController.addFilm(film);
+            filmController.createFilm(film);
         });
         assertEquals("Дата релиза — не раньше 28 декабря 1895 года", exception.getMessage());
     }
@@ -58,7 +68,7 @@ class FilmControllerTests {
     @Test
     void updateFilmTest() throws Exception {
         Film film = new Film(1L, "Film", "Description", LocalDate.of(2008, 10, 5), 120);
-        filmController.addFilm(film);
+        filmController.createFilm(film);
 
         Film updatedFilm = new Film(1L, "Updated Film", "New Description", LocalDate.of(2010, 5, 15), 150);
 
@@ -73,8 +83,8 @@ class FilmControllerTests {
     void getFilmsTest() throws Exception {
         Film film1 = new Film(1L, "Film One", "Description One", LocalDate.of(2000, 1, 1), 120);
         Film film2 = new Film(2L, "Film Two", "Description Two", LocalDate.of(2010, 5, 5), 130);
-        filmController.addFilm(film1);
-        filmController.addFilm(film2);
+        filmController.createFilm(film1);
+        filmController.createFilm(film2);
 
         mockMvc.perform(get("/films"))
                 .andExpect(status().isOk())

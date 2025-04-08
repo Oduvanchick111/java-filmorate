@@ -4,16 +4,17 @@ import jakarta.validation.constraints.*;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
-@AllArgsConstructor
 @Getter
 @Setter
 @ToString
 public class User {
 
     private Long id;
-    @Email (message = "Введен не верный адрес электронной почты")
+    @Email(message = "Введен не верный адрес электронной почты")
     private String email;
     @NotNull
     @NotBlank(message = "Логин не должен быть пустым")
@@ -22,6 +23,15 @@ public class User {
     private String name;
     @PastOrPresent(message = "Дата рождения не может быть в будущем.")
     private LocalDate birthday;
+    private final Set<Long> friends = new HashSet<>();
+
+    public User(Long id, String email, String login, String name, LocalDate birthday) {
+        this.id = id;
+        this.email = email;
+        this.login = login;
+        this.name = name;
+        this.birthday = birthday;
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -35,5 +45,4 @@ public class User {
     public int hashCode() {
         return Objects.hash(id);
     }
-
 }
