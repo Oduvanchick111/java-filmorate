@@ -1,5 +1,6 @@
-package ru.yandex.practicum.filmorate.model;
+package ru.yandex.practicum.filmorate.model.userModel;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
@@ -22,8 +23,9 @@ public class User {
     private String login;
     private String name;
     @PastOrPresent(message = "Дата рождения не может быть в будущем.")
+    @JsonFormat (pattern = "yyyy-MM-dd")
     private LocalDate birthday;
-    private final Set<Long> friends = new HashSet<>();
+    private Set<Long> friends = new HashSet<>();
 
     public User(Long id, String email, String login, String name, LocalDate birthday) {
         this.id = id;
@@ -31,6 +33,17 @@ public class User {
         this.login = login;
         this.name = name;
         this.birthday = birthday;
+    }
+
+    public User(String email, String login, String name, LocalDate birthday) {
+        this.email = email;
+        this.login = login;
+        this.name = name;
+        this.birthday = birthday;
+    }
+
+    public User() {
+
     }
 
     @Override
