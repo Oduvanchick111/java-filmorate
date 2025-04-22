@@ -61,7 +61,7 @@ class FilmServiceTests {
     }
 
     @Test
-    public void getAllFilmsTest(){
+    public void getAllFilmsTest() {
         Collection<Film> films = filmService.getAllFilms();
         Assertions.assertEquals(films.size(), 1);
     }
