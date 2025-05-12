@@ -2,7 +2,6 @@ package ru.yandex.practicum.filmorate.model.filmModel;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import ru.yandex.practicum.filmorate.service.GenreService;
 
 import java.util.Objects;
 
