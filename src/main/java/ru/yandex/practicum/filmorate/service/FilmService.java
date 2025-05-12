@@ -42,7 +42,6 @@ public class FilmService {
         checkValidateGenre(film);
         checkValidateMpa(film);
         checkReleaseDate(film);
-        //film.setId(getNextId()); Подскажите, может это убрать?
         Film savedFilm = filmStorage.createFilm(film);
         log.info("Добавлен фильм {}", film);
         return getFilmById(savedFilm.getId());

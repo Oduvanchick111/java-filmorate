@@ -23,7 +23,6 @@ public class UserService {
 
     public User createUser(User user) {
         user.setName(checkName(user.getName(), user.getLogin()));
-//        user.setId(getNextId()); Подскажите, может это убрать? Я понимаю, что без этого по идее инмемори отвалится, но он нужен еще?)
         userStorage.createUser(user);
         log.info("Пользователь создан: '{}'", user);
         return user;

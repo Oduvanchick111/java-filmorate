@@ -64,23 +64,6 @@ public class UserDbStorage extends BaseQuery<User> implements UserStorage {
         return new HashSet<>(jdbc.queryForList(FRIEND_QUERY, Long.class, userId));
     }
 
-//    @Override
-//    public void addFriend(Long userId, Long friendId) {
-//        String pending = Status.PENDING.name();
-//        String confirmed = Status.CONFIRMED.name();
-//        String checkReverseSql = "SELECT * FROM friends WHERE user_id = ? AND friend_id = ?";
-//        List<Map<String, Object>> reverseRequest = jdbc.queryForList(checkReverseSql, friendId, userId);
-//        if (!reverseRequest.isEmpty()) {
-//            String updateSql1 = "UPDATE friends SET status = 'CONFIRMED' WHERE user_id = ? AND friend_id = ?";
-//            update(updateSql1, friendId, userId);
-//
-//            String updateSql2 = "INSERT INTO friends (user_id, friend_id, status) VALUES (?, ?, ?)";
-//            update(updateSql2, userId, friendId, confirmed);
-//        } else {
-//            String insertSql = "INSERT INTO friends (user_id, friend_id, status) VALUES (?, ?, ?)";
-//            update(insertSql, userId, friendId, pending);
-//        }
-//    }
 
     @Override
     public void addFriend(Long userId, Long friendId) {
@@ -89,11 +72,6 @@ public class UserDbStorage extends BaseQuery<User> implements UserStorage {
         update(updateSql2, userId, friendId, confirmed);
     }
 
-//    @Override
-//    public void deleteFriend(Long userId, Long friendId) {
-//        String sql = "DELETE FROM friends WHERE (user_id = ? AND friend_id = ?) OR (user_id = ? AND friend_id = ?)";
-//        update(sql, userId, friendId, friendId, userId);
-//    }
 
     @Override
     public void deleteFriend(Long userId, Long friendId) {
