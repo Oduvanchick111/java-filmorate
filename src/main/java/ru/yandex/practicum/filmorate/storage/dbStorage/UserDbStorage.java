@@ -34,9 +34,17 @@ public class UserDbStorage extends BaseQuery<User> implements UserStorage {
     @Override
     public Collection<User> getAllUsers() {
         List<User> users = findMany(FIND_ALL_QUERY);
-        for (User user : users) {
-            user.getFriends().addAll(getFriendsByUserId(user.getId()));
-        }
+        Map<Long, User> userMap = users.stream()
+                .collect(Collectors.toMap(User::getId, user -> user));
+        String friendsQuery = "SELECT user_id, friend_id FROM friends";
+        jdbc.query(friendsQuery, (rs) -> {
+            long userId = rs.getLong("user_id");
+            long friendId = rs.getLong("friend_id");
+            User user = userMap.get(userId);
+            if (user != null) {
+                user.getFriends().add(friendId);
+            }
+        });
         return users;
     }
 
@@ -64,14 +72,12 @@ public class UserDbStorage extends BaseQuery<User> implements UserStorage {
         return new HashSet<>(jdbc.queryForList(FRIEND_QUERY, Long.class, userId));
     }
 
-
     @Override
     public void addFriend(Long userId, Long friendId) {
         String confirmed = Status.CONFIRMED.name();
         String updateSql2 = "MERGE INTO friends (user_id, friend_id, status) KEY (user_id, friend_id) VALUES (?, ?, ?)";
         update(updateSql2, userId, friendId, confirmed);
     }
-
 
     @Override
     public void deleteFriend(Long userId, Long friendId) {
@@ -97,4 +103,6 @@ public class UserDbStorage extends BaseQuery<User> implements UserStorage {
                         .orElseThrow(() -> new NotFoundException("Пользователь с id " + id + " не найден")))
                 .collect(Collectors.toList());
     }
+
+
 }

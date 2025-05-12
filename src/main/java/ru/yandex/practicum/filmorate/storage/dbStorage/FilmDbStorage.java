@@ -15,6 +15,7 @@ import ru.yandex.practicum.filmorate.storage.dbStorage.mappers.GenreRowMapper;
 import java.sql.Date;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Repository("filmDbStorage")
@@ -41,14 +42,37 @@ public class FilmDbStorage extends BaseQuery<Film> implements FilmStorage {
     public Collection<Film> getAllFilms() {
         List<Film> films = findMany(FIND_ALL_QUERY);
 
-        Map<Long, Set<Genre>> genresByFilmId = getGenresForAllFilms();
-        Map<Long, Set<Long>> likesByFilmId = getLikesForAllFilms();
-
+        if (films.isEmpty()) {
+            return films;
+        }
+        Map<Long, Set<Long>> likesByFilmId = new HashMap<>();
+        String likesQuery = "SELECT film_id, user_id FROM user_likes";
+        jdbc.query(likesQuery, rs -> {
+            while (rs.next()) {
+                long filmId = rs.getLong("film_id");
+                long userId = rs.getLong("user_id");
+                likesByFilmId.computeIfAbsent(filmId, k -> new HashSet<>()).add(userId);
+            }
+        });
+        Map<Long, Set<Genre>> genresByFilmId = new HashMap<>();
+        String genresQuery = """
+                    SELECT fg.film_id, g.genre_id, g.genre
+                    FROM film_genre fg
+                    JOIN genre g ON fg.genre_id = g.genre_id
+                """;
+        jdbc.query(genresQuery, rs -> {
+            while (rs.next()) {
+                long filmId = rs.getLong("film_id");
+                Genre genre = new Genre();
+                genre.setId(rs.getInt("genre_id"));
+                genre.setName(rs.getString("genre"));
+                genresByFilmId.computeIfAbsent(filmId, k -> new HashSet<>()).add(genre);
+            }
+        });
         for (Film film : films) {
             film.setGenres(genresByFilmId.getOrDefault(film.getId(), Set.of()));
             film.setIdOfUsersWhoLiked(likesByFilmId.getOrDefault(film.getId(), Set.of()));
         }
-
         return films;
     }
 
@@ -70,9 +94,7 @@ public class FilmDbStorage extends BaseQuery<Film> implements FilmStorage {
     public Film updateFilm(Film film) {
         update(UPDATE_QUERY, film.getName(), film.getDescription(), film.getReleaseDate(), film.getDuration(), film.getRating().getId(), film.getId());
         jdbc.update("DELETE FROM film_genre WHERE film_id = ?", film.getId());
-        for (Genre genre : film.getGenres()) {
-            jdbc.update("INSERT INTO film_genre (film_id, genre_id) VALUES(?, ?)", film.getId(), genre.getId());
-        }
+        insertGenresForFilm(film.getId(), film.getGenres());
         return findFilmById(film.getId()).orElseThrow(() -> new NotFoundException("Ошибка создания фильма"));
     }
 
@@ -114,11 +136,42 @@ public class FilmDbStorage extends BaseQuery<Film> implements FilmStorage {
                 ORDER BY COUNT(ul.user_id) DESC
                 LIMIT ?
                 """;
+
         List<Film> films = findMany(sql, count);
-        for (Film film : films) {
-            film.setGenres(getGenresForFilm(film.getId()));
-            film.setIdOfUsersWhoLiked(getIdOfUsersWhoLiked(film.getId()));
+
+        if (films.isEmpty()) {
+            return films;
         }
+        Map<Long, Set<Long>> likesByFilmId = new HashMap<>();
+        String likesQuery = "SELECT film_id, user_id FROM user_likes WHERE film_id IN (?)";
+        jdbc.query(likesQuery, new Object[]{films.stream().map(Film::getId).toArray()}, rs -> {
+            while (rs.next()) {
+                long filmId = rs.getLong("film_id");
+                long userId = rs.getLong("user_id");
+                likesByFilmId.computeIfAbsent(filmId, k -> new HashSet<>()).add(userId);
+            }
+        });
+        Map<Long, Set<Genre>> genresByFilmId = new HashMap<>();
+        String genresQuery = """
+                    SELECT fg.film_id, g.genre_id, g.genre
+                    FROM film_genre fg
+                    JOIN genre g ON fg.genre_id = g.genre_id
+                    WHERE fg.film_id IN (?)
+                """;
+        jdbc.query(genresQuery, new Object[]{films.stream().map(Film::getId).toArray()}, rs -> {
+            while (rs.next()) {
+                long filmId = rs.getLong("film_id");
+                Genre genre = new Genre();
+                genre.setId(rs.getInt("genre_id"));
+                genre.setName(rs.getString("genre"));
+                genresByFilmId.computeIfAbsent(filmId, k -> new HashSet<>()).add(genre);
+            }
+        });
+        for (Film film : films) {
+            film.setGenres(genresByFilmId.getOrDefault(film.getId(), Set.of()));
+            film.setIdOfUsersWhoLiked(likesByFilmId.getOrDefault(film.getId(), Set.of()));
+        }
+
         return films;
     }
 
@@ -133,49 +186,10 @@ public class FilmDbStorage extends BaseQuery<Film> implements FilmStorage {
         return new LinkedHashSet<>(jdbc.query(sql, new GenreRowMapper(), filmId));
     }
 
-    private Map<Long, Set<Genre>> getGenresForAllFilms() {
-        String sql = """
-                    SELECT fg.film_id, g.genre_id, g.genre
-                    FROM film_genre fg
-                    JOIN genre g ON fg.genre_id = g.genre_id
-                    ORDER BY g.genre_id
-                """;
-
-        return jdbc.query(sql, rs -> {
-            Map<Long, Set<Genre>> filmGenres = new HashMap<>();
-            while (rs.next()) {
-                Long filmId = rs.getLong("film_id");
-                Genre genre = new Genre(rs.getInt("genre_id"), rs.getString("genre"));
-                filmGenres.computeIfAbsent(filmId, k -> new LinkedHashSet<>()).add(genre);
-            }
-            return filmGenres;
-        });
-    }
-
     private Set<Long> getIdOfUsersWhoLiked(Long filmId) {
         String sql = "SELECT user_id FROM user_likes WHERE film_id = ?";
         List<Long> userIds = jdbc.queryForList(sql, Long.class, filmId);
         return new HashSet<>(userIds);
-    }
-
-    private Map<Long, Set<Long>> getLikesForAllFilms() {
-        String sql = """
-                    SELECT film_id, user_id
-                    FROM user_likes
-                """;
-
-        return jdbc.query(sql, rs -> {
-            Map<Long, Set<Long>> likesByFilmId = new HashMap<>();
-            while (rs.next()) {
-                Long filmId = rs.getLong("film_id");
-                Long userId = rs.getLong("user_id");
-                likesByFilmId
-                        .computeIfAbsent(filmId, k -> new HashSet<>())
-                        .add(userId);
-            }
-            return likesByFilmId;
-        });
-
     }
 
     private void insertGenresForFilm(Long filmId, Set<Genre> genres) {
@@ -196,3 +210,4 @@ public class FilmDbStorage extends BaseQuery<Film> implements FilmStorage {
         jdbc.update(sql.toString(), params.toArray());
     }
 }
+

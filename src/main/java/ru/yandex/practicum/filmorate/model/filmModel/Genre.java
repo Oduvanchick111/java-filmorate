@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.model.filmModel;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import ru.yandex.practicum.filmorate.service.GenreService;
 
 import java.util.Objects;
 
@@ -10,6 +11,10 @@ import java.util.Objects;
 public class Genre {
     private int id;
     private String name;
+
+    public Genre() {
+
+    }
 
     @Override
     public boolean equals(Object o) {
