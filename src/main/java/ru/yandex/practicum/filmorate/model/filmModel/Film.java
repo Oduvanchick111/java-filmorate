@@ -1,5 +1,6 @@
-package ru.yandex.practicum.filmorate.model;
+package ru.yandex.practicum.filmorate.model.filmModel;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
@@ -16,8 +17,8 @@ import java.util.Set;
 @ToString
 public class Film {
     private Long id;
-    @NotNull (message = "Имя не может быть пустым")
-    @NotBlank (message = "Имя не может быть пустым")
+    @NotNull(message = "Имя не может быть пустым")
+    @NotBlank(message = "Имя не может быть пустым")
     private String name;
     @Size(max = 200, message = "Максимальная длина описания — 200 символов")
     private String description;
@@ -26,15 +27,31 @@ public class Film {
     private LocalDate releaseDate;
     @Positive(message = "Продолжительность не может быть отрицательной либо 0")
     private int duration;
+    @JsonProperty("mpa")
+    private Rating rating;
+    private Set<Genre> genres = new HashSet<>();
 
-    private final Set<Long> idOfUsersWhoLiked = new HashSet<>();
+    private Set<Long> idOfUsersWhoLiked = new HashSet<>();
 
-    public Film(Long id, String name, String description, LocalDate releaseDate, int duration) {
+    public Film(Long id, String name, String description, LocalDate releaseDate, int duration, Rating rating) {
         this.id = id;
         this.name = name;
         this.description = description;
         this.releaseDate = releaseDate;
         this.duration = duration;
+        this.rating = rating;
+    }
+
+    public Film(String name, String description, LocalDate releaseDate, int duration, Rating rating) {
+        this.name = name;
+        this.description = description;
+        this.releaseDate = releaseDate;
+        this.duration = duration;
+        this.rating = rating;
+    }
+
+    public Film() {
+
     }
 
     @Override

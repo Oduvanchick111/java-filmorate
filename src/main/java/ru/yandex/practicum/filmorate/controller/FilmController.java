@@ -2,7 +2,7 @@ package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.filmModel.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
 import java.util.Collection;
@@ -40,6 +40,11 @@ public class FilmController {
     @PutMapping("/{id}/like/{userId}")
     public void addLike(@PathVariable("id") Long filmId, @PathVariable("userId") Long userId) {
         filmService.addLike(filmId, userId);
+    }
+
+    @DeleteMapping("/{id}")
+    public void deleteFilm(@PathVariable("id") Long filmId) {
+        filmService.deleteFilm(filmId);
     }
 
     @DeleteMapping("/{id}/like/{userId}")
